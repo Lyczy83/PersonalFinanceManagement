@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7f4">
+    <title>Ledgerly — your money, in focus</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Main navigation">
+        <a class="brand" href="#overview" aria-label="Ledgerly home">
+          <span class="brand-mark" aria-hidden="true">L</span>
+          <span>ledgerly</span>
+        </a>
+        <p class="nav-label">YOUR MONEY</p>
+        <a class="nav-link active" href="#overview" aria-current="page"><span aria-hidden="true">◫</span> Overview</a>
+        <a class="nav-link" href="#transactions"><span aria-hidden="true">↕</span> Transactions</a>
+        <div class="sidebar-note">
+          <span class="privacy-icon" aria-hidden="true">◈</span>
+          <strong>Your data stays yours</strong>
+          <p>Files are read in this browser and saved only on this device.</p>
+        </div>
+        <p class="sidebar-footer">A little more clarity, every month.</p>
+      </aside>
+
+      <main id="overview" class="main-content">
+        <header class="topbar">
+          <div class="breadcrumb"><span>Personal</span><span aria-hidden="true">/</span><strong>Overview</strong></div>
+          <div class="secure-label"><span aria-hidden="true">●</span> PRIVATE BY DESIGN</div>
+        </header>
+
+        <section class="page-heading" aria-labelledby="page-title">
+          <div>
+            <p class="eyebrow">YOUR FINANCES, AT A GLANCE</p>
+            <h1 id="page-title">Good money habits start with a clearer picture.</h1>
+            <p class="heading-copy">Your transactions, thoughtfully organized.</p>
+          </div>
+          <label class="button button-primary upload-button" for="file-input"><span aria-hidden="true">＋</span> Import bank file</label>
+          <input id="file-input" class="visually-hidden" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values">
+        </section>
+
+        <section class="month-toolbar" aria-label="Transaction month">
+          <div>
+            <p class="eyebrow">MONTHLY OVERVIEW</p>
+            <div class="month-picker">
+              <button id="previous-month" class="icon-button" type="button" aria-label="Previous month">‹</button>
+              <h2 id="month-label" aria-live="polite"></h2>
+              <button id="next-month" class="icon-button" type="button" aria-label="Next month">›</button>
+            </div>
+          </div>
+          <label class="category-add">
+            <span class="visually-hidden">New category name</span>
+            <input id="new-category" type="text" maxlength="32" placeholder="Add a category">
+            <button id="add-category" class="button button-secondary" type="button">＋ Add</button>
+          </label>
+        </section>
+
+        <section class="summary-grid" aria-label="Monthly totals">
+          <article class="summary-card">
+            <div class="card-title"><span class="metric-icon balance-icon" aria-hidden="true">↗</span> NET CASH FLOW</div>
+            <p id="net-total" class="metric-value">$0.00</p>
+            <p class="metric-caption">Income minus spending</p>
+          </article>
+          <article class="summary-card">
+            <div class="card-title"><span class="metric-icon income-icon" aria-hidden="true">↓</span> MONEY IN</div>
+            <p id="income-total" class="metric-value">$0.00</p>
+            <p class="metric-caption">Income this month</p>
+          </article>
+          <article class="summary-card">
+            <div class="card-title"><span class="metric-icon expense-icon" aria-hidden="true">↑</span> MONEY OUT</div>
+            <p id="expense-total" class="metric-value">$0.00</p>
+            <p class="metric-caption">Spending this month</p>
+          </article>
+        </section>
+
+        <section class="insights-grid" aria-label="Monthly insights">
+          <article class="panel spending-panel">
+            <div class="panel-heading">
+              <div><p class="eyebrow">WHERE IT GOES</p><h2>Spending by category</h2></div>
+              <span class="panel-kicker">THIS MONTH</span>
+            </div>
+            <div class="chart-layout">
+              <div class="donut-wrap">
+                <svg id="donut" viewBox="0 0 144 144" role="img" aria-label="Spending by category chart">
+                  <circle class="donut-track" cx="72" cy="72" r="52"></circle>
+                  <g id="donut-segments"></g>
+                  <text id="donut-total" x="72" y="69" class="donut-total">$0</text>
+                  <text x="72" y="86" class="donut-caption">SPENT</text>
+                </svg>
+              </div>
+              <div id="category-legend" class="category-legend"></div>
+            </div>
+          </article>
+          <article class="panel guidance-panel">
+            <div class="panel-heading">
+              <div><p class="eyebrow">A QUICK CHECK-IN</p><h2>Your month, in context</h2></div>
+              <span class="sparkle" aria-hidden="true">✳</span>
+            </div>
+            <div id="month-insight" class="insight-message"></div>
+            <div class="insight-footnote"><span aria-hidden="true">✦</span> A clearer view starts with the little things.</div>
+          </article>
+        </section>
+
+        <section id="transactions" class="panel transactions-panel" aria-labelledby="transactions-title">
+          <div class="panel-heading transactions-heading">
+            <div><p class="eyebrow">YOUR ACTIVITY</p><h2 id="transactions-title">Transactions <span id="transaction-count" class="count-badge">0</span></h2></div>
+            <p class="table-hint">Choose a category or split a transaction to make it yours.</p>
+          </div>
+          <div id="transaction-list" class="transaction-list"></div>
+        </section>
+
+        <footer class="page-footer">
+          <span>Made for a more mindful relationship with money.</span>
+          <span><span aria-hidden="true">◈</span> Stored on this device only</span>
+        </footer>
+      </main>
+    </div>
+
+    <dialog id="split-dialog" class="split-dialog">
+      <form id="split-form" method="dialog">
+        <div class="dialog-heading">
+          <div><p class="eyebrow">MAKE IT MORE PRECISE</p><h2>Split transaction</h2></div>
+          <button id="close-split" class="icon-button close-button" type="button" aria-label="Close">×</button>
+        </div>
+        <p id="split-description" class="split-description"></p>
+        <div class="split-table-head"><span>CATEGORY</span><span>AMOUNT</span><span></span></div>
+        <div id="split-rows" class="split-rows"></div>
+        <button id="add-split-row" class="add-split-row" type="button">＋ Add another part</button>
+        <div class="split-total"><span>Parts total</span><strong id="split-total">$0.00</strong></div>
+        <p id="split-error" class="form-error" role="alert"></p>
+        <div class="dialog-actions">
+          <button id="cancel-split" class="button button-secondary" type="button">Cancel</button>
+          <button class="button button-primary" type="submit">Save split</button>
+        </div>
+      </form>
+    </dialog>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
