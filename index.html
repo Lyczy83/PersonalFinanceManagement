@@ -4,16 +4,18 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f5f7f4">
-    <title>Ledgerly — your money, in focus</title>
+    <title>Lyczy Personal Finance Manager</title>
     <link rel="stylesheet" href="styles.css">
     <script src="app.js" defer></script>
   </head>
   <body>
+    <p id="storage-status" class="storage-status" role="status">Connecting to the local database…</p>
+    <p id="storage-error" class="storage-error" role="alert" hidden></p>
     <div class="app-shell">
       <aside class="sidebar" aria-label="Main navigation">
-        <a class="brand" href="#overview" aria-label="Ledgerly home">
+        <a class="brand" href="#overview" aria-label="Lyczy Personal Finance Manager home">
           <span class="brand-mark" aria-hidden="true">L</span>
-          <span>ledgerly</span>
+          <span class="brand-name">Lyczy Personal Finance Manager</span>
         </a>
         <p class="nav-label">YOUR MONEY</p>
         <a class="nav-link active" href="#overview" aria-current="page"><span aria-hidden="true">◫</span> Overview</a>
@@ -21,7 +23,7 @@
         <div class="sidebar-note">
           <span class="privacy-icon" aria-hidden="true">◈</span>
           <strong>Your data stays yours</strong>
-          <p>Files are read in this browser and saved only on this device.</p>
+          <p>Saved on this device. Every browser using the local app shares the same database.</p>
         </div>
         <p class="sidebar-footer">A little more clarity, every month.</p>
       </aside>
@@ -34,81 +36,168 @@
 
         <section class="page-heading" aria-labelledby="page-title">
           <div>
-            <p class="eyebrow">YOUR FINANCES, AT A GLANCE</p>
-            <h1 id="page-title">Good money habits start with a clearer picture.</h1>
+            <p class="eyebrow">YOUR PERSONAL FINANCE MANAGER</p>
+            <h1 id="page-title">PFM dla Łyczego</h1>
             <p class="heading-copy">Your transactions, thoughtfully organized.</p>
           </div>
           <label class="button button-primary upload-button" for="file-input"><span aria-hidden="true">＋</span> Import bank file</label>
-          <input id="file-input" class="visually-hidden" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values">
+          <input id="file-input" class="visually-hidden" type="file" accept=".csv,.tsv,.xlsx,text/csv,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
         </section>
 
-        <section class="month-toolbar" aria-label="Transaction month">
+        <nav class="budget-switcher" aria-label="Select budget">
+          <button id="budget-erste" class="budget-tab active" type="button" aria-pressed="true">
+            <span>Erste Bank Polska</span><small>Budget</small>
+          </button>
+          <button id="budget-bnp" class="budget-tab" type="button" aria-pressed="false">
+            <span>BNP Paribas</span><small>Budget</small>
+          </button>
+        </nav>
+
+        <section class="month-toolbar" aria-label="Transaction period">
           <div>
-            <p class="eyebrow">MONTHLY OVERVIEW</p>
+            <p id="period-eyebrow" class="eyebrow">MONTHLY OVERVIEW</p>
             <div class="month-picker">
-              <button id="previous-month" class="icon-button" type="button" aria-label="Previous month">‹</button>
+              <button id="previous-month" class="icon-button" type="button" aria-label="Previous period">‹</button>
               <h2 id="month-label" aria-live="polite"></h2>
-              <button id="next-month" class="icon-button" type="button" aria-label="Next month">›</button>
+              <button id="next-month" class="icon-button" type="button" aria-label="Next period">›</button>
             </div>
           </div>
-          <label class="category-add">
-            <span class="visually-hidden">New category name</span>
-            <input id="new-category" type="text" maxlength="32" placeholder="Add a category">
-            <button id="add-category" class="button button-secondary" type="button">＋ Add</button>
-          </label>
+          <div class="period-controls">
+            <label class="period-select">
+              <span>Period</span>
+              <select id="period-select" aria-label="Select analysis period">
+                <option value="month">Month</option>
+                <option value="quarter">Quarter</option>
+                <option value="year">Year</option>
+                <option value="all">All time</option>
+                <option value="custom">Custom range</option>
+              </select>
+            </label>
+            <div id="custom-range" class="custom-range" hidden>
+              <label>From <input id="range-start" type="date"></label>
+              <label>To <input id="range-end" type="date"></label>
+            </div>
+            <label class="category-add">
+              <span class="visually-hidden">New category name</span>
+              <input id="new-category" type="text" maxlength="32" placeholder="Add a category">
+              <button id="add-category" class="button button-secondary" type="button">＋ Add</button>
+            </label>
+            <button id="manage-categories" class="button button-secondary" type="button">Manage categories</button>
+          </div>
         </section>
 
-        <section class="summary-grid" aria-label="Monthly totals">
+        <section class="summary-grid" aria-label="Period totals">
           <article class="summary-card">
             <div class="card-title"><span class="metric-icon balance-icon" aria-hidden="true">↗</span> NET CASH FLOW</div>
-            <p id="net-total" class="metric-value">$0.00</p>
+            <p id="net-total" class="metric-value">0,00 zł</p>
             <p class="metric-caption">Income minus spending</p>
           </article>
           <article class="summary-card">
             <div class="card-title"><span class="metric-icon income-icon" aria-hidden="true">↓</span> MONEY IN</div>
-            <p id="income-total" class="metric-value">$0.00</p>
-            <p class="metric-caption">Income this month</p>
+            <p id="income-total" class="metric-value">0,00 zł</p>
+            <p id="income-caption" class="metric-caption">Income this month</p>
           </article>
           <article class="summary-card">
             <div class="card-title"><span class="metric-icon expense-icon" aria-hidden="true">↑</span> MONEY OUT</div>
-            <p id="expense-total" class="metric-value">$0.00</p>
-            <p class="metric-caption">Spending this month</p>
+            <p id="expense-total" class="metric-value">0,00 zł</p>
+            <p id="expense-caption" class="metric-caption">Spending this month</p>
           </article>
         </section>
 
-        <section class="insights-grid" aria-label="Monthly insights">
+        <section id="spending-groups" class="panel spending-groups-panel" aria-label="BNP spending groups" hidden>
+          <div class="panel-heading">
+            <div><p class="eyebrow">BNP PARIBAS</p><h2>Grupy wydatków</h2></div>
+            <span class="panel-kicker">PORÓWNANIE Z CELEM</span>
+          </div>
+          <p class="spending-groups-help">Sumy obejmują wydatki niewykluczone z analizy. Cele miesięczne są proporcjonalnie dopasowane do wybranego okresu. Przypisania kategorii zmienisz w „Manage categories”.</p>
+          <div id="spending-group-list" class="spending-group-grid"></div>
+        </section>
+
+        <section class="insights-grid" aria-label="Spending insights">
           <article class="panel spending-panel">
             <div class="panel-heading">
               <div><p class="eyebrow">WHERE IT GOES</p><h2>Spending by category</h2></div>
-              <span class="panel-kicker">THIS MONTH</span>
+              <span id="chart-period" class="panel-kicker">THIS MONTH</span>
             </div>
             <div class="chart-layout">
               <div class="donut-wrap">
-                <svg id="donut" viewBox="0 0 144 144" role="img" aria-label="Spending by category chart">
-                  <circle class="donut-track" cx="72" cy="72" r="52"></circle>
+                <svg id="donut" viewBox="0 0 200 200" role="img" aria-label="Spending by category chart">
+                  <circle class="donut-track" cx="100" cy="100" r="78"></circle>
                   <g id="donut-segments"></g>
-                  <text id="donut-total" x="72" y="69" class="donut-total">$0</text>
-                  <text x="72" y="86" class="donut-caption">SPENT</text>
+                  <text id="donut-total" x="100" y="97" class="donut-total">0 zł</text>
+                  <text x="100" y="115" class="donut-caption">SPENT</text>
                 </svg>
               </div>
               <div id="category-legend" class="category-legend"></div>
+              <div id="category-tooltip" class="category-tooltip" role="tooltip" hidden></div>
             </div>
           </article>
-          <article class="panel guidance-panel">
-            <div class="panel-heading">
-              <div><p class="eyebrow">A QUICK CHECK-IN</p><h2>Your month, in context</h2></div>
-              <span class="sparkle" aria-hidden="true">✳</span>
+        </section>
+
+        <section class="panel cashflow-panel" aria-labelledby="cashflow-title">
+          <div class="panel-heading">
+            <div><p class="eyebrow">CASH FLOW TREND</p><h2 id="cashflow-title">Income &amp; spending over time</h2></div>
+            <div class="cashflow-tools">
+              <label class="cashflow-granularity">
+                <span>Group by</span>
+                <select id="cashflow-granularity" aria-label="Group cash flow chart by">
+                  <option value="auto">Automatic</option>
+                  <option value="day">Day</option>
+                  <option value="week">Week</option>
+                  <option value="month">Month</option>
+                  <option value="quarter">Quarter</option>
+                  <option value="year">Year</option>
+                </select>
+              </label>
+              <div class="cashflow-legend" aria-label="Chart legend">
+                <span><i class="cashflow-legend-income" aria-hidden="true"></i>Income</span>
+                <span><i class="cashflow-legend-expense" aria-hidden="true"></i>Spending</span>
+              </div>
             </div>
-            <div id="month-insight" class="insight-message"></div>
-            <div class="insight-footnote"><span aria-hidden="true">✦</span> A clearer view starts with the little things.</div>
-          </article>
+          </div>
+          <div class="cashflow-chart-wrap">
+            <svg id="cashflow-chart" class="cashflow-chart" viewBox="0 0 760 240" role="img" aria-label="Income and spending over time"></svg>
+            <p id="cashflow-empty" class="chart-empty" hidden>No included transactions in this period.</p>
+            <p id="cashflow-note" class="cashflow-note" hidden></p>
+          </div>
         </section>
 
         <section id="transactions" class="panel transactions-panel" aria-labelledby="transactions-title">
           <div class="panel-heading transactions-heading">
             <div><p class="eyebrow">YOUR ACTIVITY</p><h2 id="transactions-title">Transactions <span id="transaction-count" class="count-badge">0</span></h2></div>
-            <p class="table-hint">Choose a category or split a transaction to make it yours.</p>
+            <p class="table-hint">Filter, sort, categorize, or split your transactions.</p>
           </div>
+          <div class="transaction-controls">
+            <label class="transaction-control transaction-sort">
+              <span>Sort by</span>
+              <select id="transaction-sort" aria-label="Sort transactions">
+                <option value="date-desc">Date: newest first</option>
+                <option value="date-asc">Date: oldest first</option>
+                <option value="description-asc">Description: A–Z</option>
+                <option value="description-desc">Description: Z–A</option>
+                <option value="category-asc">Category: A–Z</option>
+                <option value="amount-desc">Amount: highest first</option>
+                <option value="amount-asc">Amount: lowest first</option>
+              </select>
+            </label>
+            <details id="category-filter" class="category-filter">
+              <summary id="category-filter-summary">All categories</summary>
+              <div class="category-filter-menu">
+                <input id="category-filter-search" class="category-filter-search" type="search" placeholder="Search categories..." aria-label="Search categories">
+                <button id="clear-category-filter" class="clear-category-filter" type="button">Clear filter</button>
+                <div id="category-filter-options" class="category-filter-options"></div>
+                <p id="category-filter-empty" class="category-filter-empty" hidden>No matching categories.</p>
+              </div>
+            </details>
+            <label class="hide-excluded-control">
+              <input id="hide-excluded" type="checkbox">
+              <span>Hide excluded</span>
+            </label>
+            <button id="review-duplicates" class="button button-secondary review-duplicates" type="button">
+              Review duplicates <span id="duplicate-count" class="count-badge">0</span>
+            </button>
+          </div>
+          <div id="transaction-summary" class="transaction-summary" aria-live="polite"></div>
           <div id="transaction-list" class="transaction-list"></div>
         </section>
 
@@ -129,13 +218,55 @@
         <div class="split-table-head"><span>CATEGORY</span><span>AMOUNT</span><span></span></div>
         <div id="split-rows" class="split-rows"></div>
         <button id="add-split-row" class="add-split-row" type="button">＋ Add another part</button>
-        <div class="split-total"><span>Parts total</span><strong id="split-total">$0.00</strong></div>
+        <div class="split-total"><span>Parts total</span><strong id="split-total">0,00 zł</strong></div>
         <p id="split-error" class="form-error" role="alert"></p>
         <div class="dialog-actions">
           <button id="cancel-split" class="button button-secondary" type="button">Cancel</button>
           <button class="button button-primary" type="submit">Save split</button>
         </div>
       </form>
+    </dialog>
+    <dialog id="category-dialog" class="split-dialog category-dialog">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">PERSONALIZE YOUR TRACKING</p><h2>Manage categories</h2></div>
+        <button id="close-categories" class="icon-button close-button" type="button" aria-label="Close">×</button>
+      </div>
+      <p class="category-help">Edit names or remove categories; removed categories move to “Uncategorized”. In the BNP budget, choose a spending group for each category or leave it unassigned.</p>
+      <div id="category-list" class="category-list"></div>
+      <p id="category-error" class="form-error" role="alert"></p>
+      <div class="dialog-actions category-actions">
+        <button id="cancel-categories" class="button button-secondary" type="button">Cancel</button>
+        <button id="save-categories" class="button button-primary" type="button" disabled>Save changes</button>
+      </div>
+    </dialog>
+    <dialog id="import-review-dialog" class="split-dialog import-review-dialog">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">IMPORT CHECK</p><h2 id="import-review-title">Review uncategorized transactions</h2></div>
+        <button id="close-import-review" class="icon-button close-button" type="button" aria-label="Close">×</button>
+      </div>
+      <p class="category-help">Choose a category for each new transaction description. Leave it as “Uncategorized” to skip. Remembering a choice lets matching descriptions and recipients be categorized automatically next time.</p>
+      <div id="import-review-list" class="import-review-list"></div>
+      <p id="import-review-error" class="form-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button id="skip-import-review" class="button button-secondary" type="button">Leave as Uncategorized</button>
+        <button id="save-import-review" class="button button-primary" type="button">Save categories</button>
+      </div>
+    </dialog>
+    <dialog id="duplicate-dialog" class="split-dialog duplicate-dialog">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">IMPORT CHECK</p><h2>Skipped duplicates</h2></div>
+        <button id="close-duplicates" class="icon-button close-button" type="button" aria-label="Close">×</button>
+      </div>
+      <p id="duplicate-help" class="category-help">These rows were not added because they matched an existing transaction. Review them and restore any that are separate real transactions.</p>
+      <div id="duplicate-list" class="duplicate-list"></div>
+    </dialog>
+    <dialog id="category-transactions-dialog" class="split-dialog category-transactions-dialog">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">CATEGORY DETAILS</p><h2 id="category-transactions-title"></h2></div>
+        <button id="close-category-transactions" class="icon-button close-button" type="button" aria-label="Close">×</button>
+      </div>
+      <p id="category-transactions-summary" class="category-help"></p>
+      <div id="category-transactions-list" class="category-transactions-list"></div>
     </dialog>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
   </body>
